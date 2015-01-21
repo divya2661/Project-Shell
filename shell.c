@@ -38,6 +38,7 @@ int isBuiltInCommand(char * cmd){
   if ( strncmp(cmd, "rm" , strlen("rm")) == 0 ){
     return RM;
   }
+ 
   return NO_SUCH_BUILTIN;
 }
 
@@ -59,6 +60,9 @@ int main (int argc, char **argv)
   char * cmdLine;
   parseInfo *info; /*info stores all the information returned by parser.*/
   struct commandType *com; /*com stores command name and Arg list for one command.*/
+  int infi,outf,backg,append,pipe_var;
+  char inputfile[FILE_MAX_SIZE];
+  char outputfile[FILE_MAX_SIZE];
    
   fprintf(stdout, "-------This is 1st OS_LAB project by Shrestha Garg and Divya Nagar UNIX version------\n");
   fprintf(stdout, "###############---Welcome to our own Unix Shell press EXIT to exit.---############### \n");
@@ -66,6 +70,7 @@ int main (int argc, char **argv)
 
 
   while(1){
+
     /*insert your code to print prompt here*/
    
 /*
@@ -78,6 +83,8 @@ Otherwise, the line is ended just as if a newline had been typed.
 
 
     cmdLine = readline(buildPrompt());
+
+
     
     if (cmdLine == NULL) {
       fprintf(stderr, "Unable to read command. \n");
@@ -90,7 +97,6 @@ Otherwise, the line is ended just as if a newline had been typed.
     /*calls the parser*/
     info = parse(cmdLine);
     if (info == NULL){
-      fprintf(stdout,"Divya.................");
       free(cmdLine);
       continue;
     }
@@ -99,6 +105,15 @@ Otherwise, the line is ended just as if a newline had been typed.
 
     /*com contains the info. of the command before the first "|"*/
     com=&info->CommArray[0];
+    infi = info->boolOutfile;
+    outf = info->boolInfile;
+    backg = info->boolBackground;
+    append = info->boolAppend;
+    pipe_var = info->boolpipe;
+   	
+   	
+
+    /*fprintf(stdout, "infi: %d outf: %d backg: %d\n",infi,outf,backg);*/
     if ((com == NULL)  || (com->command == NULL)) {
       free_info(info);
       free(cmdLine);
@@ -108,7 +123,8 @@ Otherwise, the line is ended just as if a newline had been typed.
 
     /*----------CHDIR-------------------------*/
 
-     if(isBuiltInCommand(com->command) == CD){
+     if(isBuiltInCommand(com->command) == CD && infi==0 && outf==0 && backg==0 && append ==0 && pipe_var==0){
+
         if(com->VarList[1]==NULL){
           printf("please write a file name also.");
           printf("\n");
@@ -124,7 +140,7 @@ Otherwise, the line is ended just as if a newline had been typed.
 
     
     /*----------------PWD------------------------*/
-    else if(isBuiltInCommand(com->command)==PWD){
+    else if(isBuiltInCommand(com->command)==PWD && infi==0 && outf==0 && backg==0  && append ==0 && pipe_var==0){
         long size;
         char *buf;
         char *ptr;
@@ -140,7 +156,7 @@ Otherwise, the line is ended just as if a newline had been typed.
     /*----------------END PWD--------------------*/
 
     /*-----------------LS -l---------------------*/
-    else if(isBuiltInCommand(com->command)==LS){
+    else if(isBuiltInCommand(com->command)==LS && infi==0 && outf==0 && backg==0  && append ==0 && pipe_var==0){
         pid_t child;
         int status;
         pid_t c;
@@ -164,10 +180,11 @@ Otherwise, the line is ended just as if a newline had been typed.
 
         }
     }
+
     /*-----------------END LS--------------------*/
 
     /*-----------------RMDIR---------------------*/
-    else if(isBuiltInCommand(com->command) == RMDIR){    
+    else if(isBuiltInCommand(com->command) == RMDIR && infi==0 && outf==0 && backg==0  && append ==0 && pipe_var==0){    
         int stat;
         if(com->VarList[1]==NULL){
             printf("Please specify some directory name.");
@@ -187,7 +204,7 @@ Otherwise, the line is ended just as if a newline had been typed.
     /*-----------------EXIT RMDIR----------------*/
 
     /*-----------------MKDIR---------------------*/
-    else if(isBuiltInCommand(com->command) == MKDIR){    
+    else if(isBuiltInCommand(com->command) == MKDIR && infi==0 && outf==0 && backg==0  && append ==0 && pipe_var==0){    
         int stat;
         if(com->VarList[1]==NULL){
             printf("Please specify some directory name.");
@@ -207,7 +224,7 @@ Otherwise, the line is ended just as if a newline had been typed.
     /*-----------------EXIT MKDIR----------------*/
 
     /*-----------------Remove File---------------------*/
-    else if(isBuiltInCommand(com->command) == RM){    
+    else if(isBuiltInCommand(com->command) == RM && infi==0 && outf==0 && backg==0  && append ==0 && pipe_var==0){    
         int stat;
         if(com->VarList[1]==NULL){
             printf("Please specify some file name.");
@@ -228,40 +245,222 @@ Otherwise, the line is ended just as if a newline had been typed.
 
 
     /*-------------------EXIT------------            */
-    else if (isBuiltInCommand(com->command) == EXIT){
+    else if (isBuiltInCommand(com->command) == EXIT && infi==0 && outf==0 && backg==0  && append ==0 && pipe_var==0) {
       exit(1);
     }
 
-    else{
-        pid_t child;
+    
+
+
+    /*  ----------------------   APPEND START-----------------------      */
+    else if(infi==0 && outf==0 && backg==0  && append ==1 && pipe_var==0){
+    	pid_t child;
         int status;
         pid_t c;
         char *args[2];
+      
         args[0] = com->command; args[1] = NULL; 
+        
         child = fork();
         if(child == 0){
-            printf("Child: PID of Child =%d %ld\n", child,(long) getpid());
-            execvp(args[0], args); 
+        	if(info->appendFile==NULL){
+        		printf("Please specify the file name.");
+        	}
+        	else{
+	            printf("Child: PID of Child =%d %ld\n", child,(long) getpid());
+	            
+	            freopen(info->appendFile, "a+", stdout);
+	            
+	            execvp(args[0], args); 
+	            
 
-            fprintf(stderr, "Child process could not do execvp.\n");
-            exit(1);
+	            fprintf(stderr, "Child process could not do execvp.\n");
+	            exit(1);
+	        }
         } 
-        else{
+       else{
+        	
           if (child == (pid_t)(-1)) {
               fprintf(stderr, "Fork failed.\n"); exit(1);
           }
           else {
-              c = wait(&status);       /* Wait for child to complete. */
+              c = wait(&status);     
           }
 
         }
     }
+
+
+    /*---------------------------INPUT FILE I?O START--------------------------*/
+
+
+    else if(infi==1 && outf==0 && backg==0  && append ==0 && pipe_var==0){
+    	pid_t child;
+        int status;
+        pid_t c;
+        char *args[2];
+      
+        args[0] = com->command; args[1] = NULL; 
+        
+        child = fork();
+        if(child == 0){
+        	if(info->outFile==NULL){
+        		printf("Please specify the file name.");
+        	}
+        	else{
+	            printf("Child: PID of Child =%d %ld\n", child,(long) getpid());
+	            
+	            freopen(info->outFile, "w+", stdout);
+	            
+	            execvp(args[0], args); 
+	            
+
+	            fprintf(stderr, "Child process could not do execvp.\n");
+	            exit(1);
+	        }
+        }
+     
+       else{
+        	
+          if (child == (pid_t)(-1)) {
+              fprintf(stderr, "Fork failed.\n"); exit(1);
+          }
+          else {
+              c = wait(&status);     
+          }
+
+        }
+    }
+    /*------------------------------OUTPUT I?O REDIRECTION START-----------*/
+        else if(infi==0 && outf==1 && backg==0  && append ==0 && pipe_var==0){
+    	pid_t child;
+        int status;
+        pid_t c;
+        char *args[2];
+      
+        args[0] = com->command; args[1] = NULL; 
+        
+        child = fork();
+        if(child == 0){
+        	if(info->inFile==NULL){
+        		printf("Please specify the file name.");
+        	}
+        	else{
+	            printf("Child: PID of Child =%d %ld\n", child,(long) getpid());
+	            
+	            freopen(info->inFile, "r+", stdin);
+	            
+	            execvp(args[0], args); 
+	            
+
+	            fprintf(stderr, "Child process could not do execvp.\n");
+	            exit(1);
+	        }
+        }
+     
+       else{
+        	
+          if (child == (pid_t)(-1)) {
+              fprintf(stderr, "Fork failed.\n"); exit(1);
+          }
+          else {
+              c = wait(&status);     
+          }
+
+        }
+    }
+
+
+   /*---------------PATH EXECUTION START-------------------*/
+
+    else if(infi==0 && outf==0  && append ==0 && pipe_var==0){	
+ 			
+       		
+       			pid_t child;       		
+       			
+       			int status;
+       			pid_t c;
+       			child = fork();
+       			
+		        if(child == 0){
+		        	 
+			        execvp(com->VarList[0], com->VarList); 
+
+		            fprintf(stderr, "Child process could not do execvp.\n");
+		            exit(1);
+		        } 
+		        else{
+		          if (child == (pid_t)(-1)) {
+		              fprintf(stderr, "Fork failed.\n"); exit(1);
+		          }
+		          else {
+		          		if(backg==0){
+		          			printf("forground proceses\n");
+		          			waitpid(child,0,0);
+		          		}
+
+		          		if(backg==1){
+		          			printf("backgrund...\n");
+		          			backg=0;
+		          		}
+
+		          		
+		                     /* Wait for child to complete. */
+		          }
+
+		        }
+    }
+
+       else if(pipe_var==1){
+	        	int i;
+	        	int args[2];
+	        	pid_t child,child2;
+	        	int status;
+	        	pid_t c;
+	        	child = fork();
+	        	
+	        	
+	        	if(child==(pid_t)0){
+	        		pipe(args);
+	        		dup2(args[1],1);
+	        		close(args[0]);
+	        		execlp(com->VarList[0],com->VarList[0],NULL);
+
+	        		fprintf(stderr, "Child process could not do execvp.\n");
+		            exit(1);
+	        	}
+	        	else{
+	        		if (child == (pid_t)(-1)) {
+		              	fprintf(stderr, "Fork failed.\n"); exit(1);
+		          	}
+		          	else{
+			          	waitpid(child,&status,0);
+			          	child2 =fork();
+			          	if(child2==0){
+			          		close(args[1]);
+			          		dup2(args[0],0);
+			          		execlp(com->VarList[1],com->VarList[1],NULL);
+
+			          	}
+		        		else{
+		        			waitpid(child2,&status,0);
+	        			}
+	        	}
+	        }
+        } 
+
+    else{
+    	printf("command not found.\n");
+
+    }
+
     /*insert your code here.*/
 
     free_info(info);
     free(cmdLine);
   }/* while(1) */
-}
+    	}
+
   
 
 
