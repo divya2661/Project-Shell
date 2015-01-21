@@ -11,12 +11,15 @@ struct commandType {
 /* parsing information structure */
 typedef struct {
   int   boolInfile;		       /* boolean value - infile specified */
-  int   boolOutfile;		       /* boolean value - outfile specified */
-  int   boolBackground;		       /* run the process in the background? */
+  int   boolOutfile;
+  int   boolAppend;            		      /* boolean value - outfile specified */
+  int   boolBackground;
+  int   boolpipe;		       /* run the process in the background? */
   struct commandType CommArray[PIPE_MAX_NUM];
   int   pipeNum;
   char  inFile[FILE_MAX_SIZE];	       /* file to be piped from */
-  char  outFile[FILE_MAX_SIZE];	       /* file to be piped into */
+  char  outFile[FILE_MAX_SIZE];
+  char appendFile[FILE_MAX_SIZE];	       /* file to be piped into */
 } parseInfo;
 
 /* the function prototypes */
