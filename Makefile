@@ -1,4 +1,4 @@
-LIB=-lreadline -lcurses
+LIB=-lreadline 
 CFLAGS=-DUNIX -ansi -pedantic-errors
 DEBUG=-g
 #DEBUG=
