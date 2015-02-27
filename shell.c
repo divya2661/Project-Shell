@@ -418,8 +418,10 @@ Otherwise, the line is ended just as if a newline had been typed.
 	        	int status;
 	        	pid_t c;
 	        	child = fork();
-	        	
-	        	
+	        	/*args[1]--> writing descriptor, args[0]--> reading descriptors
+	        	1---> stdout and 0-> stdin
+	        	*/
+	    
 	        	if(child==(pid_t)0){
 	        		pipe(args);
 	        		dup2(args[1],1);
